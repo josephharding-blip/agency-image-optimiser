@@ -1,5 +1,5 @@
 import streamlit as st
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageFilter
 import io
 import zipfile
 
@@ -41,9 +41,26 @@ def process_images(files, sizes_dict, output_format, crop_method, compression_le
                     resized_img = ImageOps.fit(img, size, method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
                 elif crop_method == "Crop from Top":
                     resized_img = ImageOps.fit(img, size, method=Image.Resampling.LANCZOS, centering=(0.5, 0.0))
-                elif crop_method == "Fit (No Crop, Add Padding)":
-                    pad_color = (255, 255, 255, 0) if output_format.upper() == 'PNG' else (255, 255, 255)
-                    resized_img = ImageOps.pad(img, size, method=Image.Resampling.LANCZOS, color=pad_color)
+                elif crop_method == "Crop from Left":
+                    resized_img = ImageOps.fit(img, size, method=Image.Resampling.LANCZOS, centering=(0.0, 0.5))
+                elif crop_method == "Crop from Right":
+                    resized_img = ImageOps.fit(img, size, method=Image.Resampling.LANCZOS, centering=(1.0, 0.5))
+                elif crop_method == "Fit (No Crop, Blurred Padding)":
+                    # 1. Create a beautiful blurred background filling the target size
+                    bg_base = img.convert("RGB")
+                    bg = ImageOps.fit(bg_base, size, method=Image.Resampling.LANCZOS)
+                    bg = bg.filter(ImageFilter.GaussianBlur(radius=30)) # Smooth 30px blur radius
+                    bg = bg.convert("RGBA")
+                    
+                    # 2. Fit the foreground image inside the target size with transparent padding
+                    fg_padded = ImageOps.pad(img.convert("RGBA"), size, method=Image.Resampling.LANCZOS, color=(0, 0, 0, 0))
+                    
+                    # 3. Composite them together seamlessly
+                    resized_img = Image.alpha_composite(bg, fg_padded)
+                    
+                    # 4. Final format cleanup matching destination criteria
+                    if output_format.upper() in ('JPG', 'JPEG'):
+                        resized_img = resized_img.convert("RGB")
                 
                 img_buffer = io.BytesIO()
                 save_format = "JPEG" if output_format.upper() in ("JPG", "JPEG") else output_format.upper()
@@ -71,6 +88,9 @@ st.set_page_config(page_title="Agency Image Optimiser", page_icon="🖼️", lay
 st.title("🚀 Agency Media Optimiser")
 st.write("Select a client tab below, adjust your individual settings, drop your images, and click generate.")
 
+# Master list of crop options to avoid code clutter
+crop_options = ["Crop from Center", "Crop from Top", "Crop from Left", "Crop from Right", "Fit (No Crop, Blurred Padding)"]
+
 # The 6 specific tabs
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🎨 create digital", 
@@ -87,12 +107,11 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 with tab1:
     st.subheader("create digital")
     
-    # Settings row cleanly boxed inside the tab
     col_set1, col_set2, col_set3 = st.columns(3)
     with col_set1:
         cd_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=0, horizontal=True, key="fmt_cd")
     with col_set2:
-        cd_crop = st.radio("Crop Style:", ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"], horizontal=True, key="crop_cd")
+        cd_crop = st.radio("Crop Style:", crop_options, horizontal=True, key="crop_cd")
     with col_set3:
         cd_comp = st.select_slider("Web Compression:", options=["Low", "Medium", "High"], value="High", key="comp_cd")
     
@@ -123,7 +142,7 @@ with tab2:
     with col_set1:
         rsl_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=1, horizontal=True, key="fmt_rsl")
     with col_set2:
-        rsl_crop = st.radio("Crop Style:", ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"], horizontal=True, key="crop_rsl")
+        rsl_crop = st.radio("Crop Style:", crop_options, horizontal=True, key="crop_rsl")
     with col_set3:
         rsl_comp = st.select_slider("Web Compression:", options=["Low", "Medium", "High"], value="High", key="comp_rsl")
     
@@ -154,7 +173,7 @@ with tab3:
     with col_set1:
         ahri_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=1, horizontal=True, key="fmt_ahri")
     with col_set2:
-        ahri_crop = st.radio("Crop Style:", ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"], horizontal=True, key="crop_ahri")
+        ahri_crop = st.radio("Crop Style:", crop_options, horizontal=True, key="crop_ahri")
     with col_set3:
         ahri_comp = st.select_slider("Web Compression:", options=["Low", "Medium", "High"], value="High", key="comp_ahri")
     
@@ -185,7 +204,7 @@ with tab4:
     with col_set1:
         psa_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=1, horizontal=True, key="fmt_psa")
     with col_set2:
-        psa_crop = st.radio("Crop Style:", ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"], horizontal=True, key="crop_psa")
+        psa_crop = st.radio("Crop Style:", crop_options, horizontal=True, key="crop_psa")
     with col_set3:
         psa_comp = st.select_slider("Web Compression:", options=["Low", "Medium", "High"], value="High", key="comp_psa")
     
@@ -216,7 +235,7 @@ with tab5:
     with col_set1:
         adyen_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=0, horizontal=True, key="fmt_adyen")
     with col_set2:
-        adyen_crop = st.radio("Crop Style:", ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"], horizontal=True, key="crop_adyen")
+        adyen_crop = st.radio("Crop Style:", crop_options, horizontal=True, key="crop_adyen")
     with col_set3:
         adyen_comp = st.select_slider("Web Compression:", options=["Low", "Medium", "High"], value="High", key="comp_adyen")
     
@@ -250,7 +269,7 @@ with tab6:
     with col_set1:
         ban_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=0, horizontal=True, key="fmt_ban")
     with col_set2:
-        ban_crop = st.radio("Crop Style:", ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"], horizontal=True, key="crop_ban")
+        ban_crop = st.radio("Crop Style:", crop_options, horizontal=True, key="crop_ban")
     with col_set3:
         ban_comp = st.select_slider("Web Compression:", options=["Low", "Medium", "High"], value="High", key="comp_ban")
     
