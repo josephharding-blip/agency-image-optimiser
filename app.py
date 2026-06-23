@@ -48,7 +48,7 @@ def process_images(files, sizes_dict, output_format, crop_method, compression_le
                 img_buffer = io.BytesIO()
                 save_format = "JPEG" if output_format.upper() in ("JPG", "JPEG") else output_format.upper()
                 
-                # Apply ImageOptim-style compression
+                # Apply ImageOptim-style compression (Python requires 'optimize=True' keyword)
                 if save_format == "JPEG":
                     resized_img.save(img_buffer, format=save_format, quality=q_val, optimize=True)
                 elif save_format == "PNG":
@@ -66,9 +66,9 @@ def process_images(files, sizes_dict, output_format, crop_method, compression_le
 # ==========================================
 # UI LAYOUT (Tabs at the Absolute Top)
 # ==========================================
-st.set_page_config(page_title="Agency Image Optimizer", page_icon="🖼️", layout="wide")
+st.set_page_config(page_title="Agency Image Optimiser", page_icon="🖼️", layout="wide")
 
-st.title("🚀 Agency Media Optimizer")
+st.title("🚀 Agency Media Optimiser")
 st.write("Select a client tab below, adjust your individual settings, drop your images, and click generate.")
 
 # The 6 specific tabs
