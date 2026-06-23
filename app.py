@@ -11,9 +11,9 @@ def process_images(files, sizes_dict, output_format, crop_method, compression_le
     
     # Map the UI toggle to actual quality percentages
     quality_map = {
-        "High (Best Quality)": 95,
-        "Medium (Web Standard)": 80,
-        "Low (Smallest File)": 60
+        "High": 95,
+        "Medium": 80,
+        "Low": 60
     }
     q_val = quality_map[compression_level]
     
@@ -50,13 +50,10 @@ def process_images(files, sizes_dict, output_format, crop_method, compression_le
                 
                 # Apply ImageOptim-style compression
                 if save_format == "JPEG":
-                    # optimize=True strips out unnecessary data just like ImageOptim
                     resized_img.save(img_buffer, format=save_format, quality=q_val, optimize=True)
                 elif save_format == "PNG":
-                    # PNGs are lossless, but optimize=True compresses the file size safely
                     resized_img.save(img_buffer, format=save_format, optimize=True)
                 else:
-                    # GIFs
                     resized_img.save(img_buffer, format=save_format, optimize=True)
                 
                 # File Naming Convention: size_originalname.ext
@@ -67,31 +64,12 @@ def process_images(files, sizes_dict, output_format, crop_method, compression_le
     return zip_buffer.getvalue()
 
 # ==========================================
-# UI LAYOUT
+# UI LAYOUT (Tabs at the Absolute Top)
 # ==========================================
 st.set_page_config(page_title="Agency Image Optimizer", page_icon="🖼️", layout="wide")
 
 st.title("🚀 Agency Media Optimizer")
-
-# Global Adjustments (Crop & Compression)
-st.markdown("### ⚙️ Global Adjustments")
-col_glob1, col_glob2 = st.columns(2)
-
-with col_glob1:
-    crop_method = st.radio(
-        "Crop Style:", 
-        ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"],
-        horizontal=True
-    )
-with col_glob2:
-    compression_level = st.select_slider(
-        "Web Compression (File Size):", 
-        options=["Low (Smallest File)", "Medium (Web Standard)", "High (Best Quality)"],
-        value="High (Best Quality)"
-    )
-
-st.divider()
-st.write("Select a client tab, adjust your format, choose your sizes, drop your images, and click generate.")
+st.write("Select a client tab below, adjust your individual settings, drop your images, and click generate.")
 
 # The 6 specific tabs
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
@@ -108,7 +86,16 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 # ==========================================
 with tab1:
     st.subheader("create digital")
-    cd_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=0, horizontal=True, key="fmt_cd") # Defaults to PNG
+    
+    # Settings row cleanly boxed inside the tab
+    col_set1, col_set2, col_set3 = st.columns(3)
+    with col_set1:
+        cd_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=0, horizontal=True, key="fmt_cd")
+    with col_set2:
+        cd_crop = st.radio("Crop Style:", ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"], horizontal=True, key="crop_cd")
+    with col_set3:
+        cd_comp = st.select_slider("Web Compression:", options=["Low", "Medium", "High"], value="High", key="comp_cd")
+    
     st.divider()
     
     cd_sizes = {"1540x1080": (1540, 1080), "628x320": (628, 320), "240x165": (240, 165), "500x500": (500, 500)}
@@ -123,7 +110,7 @@ with tab1:
     
     if files_cd and cd_selected:
         if st.button("Generate 'create digital' Kit", key="btn_cd"):
-            zip_data = process_images(files_cd, cd_selected, cd_format, crop_method, compression_level)
+            zip_data = process_images(files_cd, cd_selected, cd_format, cd_crop, cd_comp)
             st.download_button(f"📥 Download {cd_format} Kit", data=zip_data, file_name="create_digital_Kit.zip", mime="application/zip")
 
 # ==========================================
@@ -131,7 +118,15 @@ with tab1:
 # ==========================================
 with tab2:
     st.subheader("RSL NSW")
-    rsl_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=1, horizontal=True, key="fmt_rsl") # Defaults to JPG
+    
+    col_set1, col_set2, col_set3 = st.columns(3)
+    with col_set1:
+        rsl_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=1, horizontal=True, key="fmt_rsl")
+    with col_set2:
+        rsl_crop = st.radio("Crop Style:", ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"], horizontal=True, key="crop_rsl")
+    with col_set3:
+        rsl_comp = st.select_slider("Web Compression:", options=["Low", "Medium", "High"], value="High", key="comp_rsl")
+    
     st.divider()
 
     rsl_sizes = {"766x459": (766, 459), "591x394": (591, 394), "1080x1080": (1080, 1080)}
@@ -146,7 +141,7 @@ with tab2:
     
     if files_rsl and rsl_selected:
         if st.button("Generate 'RSL NSW' Kit", key="btn_rsl"):
-            zip_data = process_images(files_rsl, rsl_selected, rsl_format, crop_method, compression_level)
+            zip_data = process_images(files_rsl, rsl_selected, rsl_format, rsl_crop, rsl_comp)
             st.download_button(f"📥 Download {rsl_format} Kit", data=zip_data, file_name="RSL_NSW_Kit.zip", mime="application/zip")
 
 # ==========================================
@@ -154,7 +149,15 @@ with tab2:
 # ==========================================
 with tab3:
     st.subheader("AHRI")
-    ahri_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=1, horizontal=True, key="fmt_ahri") # Defaults to JPG
+    
+    col_set1, col_set2, col_set3 = st.columns(3)
+    with col_set1:
+        ahri_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=1, horizontal=True, key="fmt_ahri")
+    with col_set2:
+        ahri_crop = st.radio("Crop Style:", ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"], horizontal=True, key="crop_ahri")
+    with col_set3:
+        ahri_comp = st.select_slider("Web Compression:", options=["Low", "Medium", "High"], value="High", key="comp_ahri")
+    
     st.divider()
 
     ahri_sizes = {"1400x800": (1400, 800), "600x265": (600, 265), "300x150": (300, 150)}
@@ -169,7 +172,7 @@ with tab3:
     
     if files_ahri and ahri_selected:
         if st.button("Generate 'AHRI' Kit", key="btn_ahri"):
-            zip_data = process_images(files_ahri, ahri_selected, ahri_format, crop_method, compression_level)
+            zip_data = process_images(files_ahri, ahri_selected, ahri_format, ahri_crop, ahri_comp)
             st.download_button(f"📥 Download {ahri_format} Kit", data=zip_data, file_name="AHRI_Kit.zip", mime="application/zip")
 
 # ==========================================
@@ -177,7 +180,15 @@ with tab3:
 # ==========================================
 with tab4:
     st.subheader("PSA")
-    psa_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=1, horizontal=True, key="fmt_psa") # Defaults to JPG
+    
+    col_set1, col_set2, col_set3 = st.columns(3)
+    with col_set1:
+        psa_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=1, horizontal=True, key="fmt_psa")
+    with col_set2:
+        psa_crop = st.radio("Crop Style:", ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"], horizontal=True, key="crop_psa")
+    with col_set3:
+        psa_comp = st.select_slider("Web Compression:", options=["Low", "Medium", "High"], value="High", key="comp_psa")
+    
     st.divider()
 
     psa_sizes = {"1280x780": (1280, 780), "560x300": (560, 300), "300x250": (300, 250), "560x150": (560, 150)}
@@ -192,7 +203,7 @@ with tab4:
     
     if files_psa and psa_selected:
         if st.button("Generate 'PSA' Kit", key="btn_psa"):
-            zip_data = process_images(files_psa, psa_selected, psa_format, crop_method, compression_level)
+            zip_data = process_images(files_psa, psa_selected, psa_format, psa_crop, psa_comp)
             st.download_button(f"📥 Download {psa_format} Kit", data=zip_data, file_name="PSA_Kit.zip", mime="application/zip")
 
 # ==========================================
@@ -200,7 +211,15 @@ with tab4:
 # ==========================================
 with tab5:
     st.subheader("Adyen")
-    adyen_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=0, horizontal=True, key="fmt_adyen") # Defaults to PNG
+    
+    col_set1, col_set2, col_set3 = st.columns(3)
+    with col_set1:
+        adyen_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=0, horizontal=True, key="fmt_adyen")
+    with col_set2:
+        adyen_crop = st.radio("Crop Style:", ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"], horizontal=True, key="crop_adyen")
+    with col_set3:
+        adyen_comp = st.select_slider("Web Compression:", options=["Low", "Medium", "High"], value="High", key="comp_adyen")
+    
     st.divider()
 
     adyen_sizes = {
@@ -218,7 +237,7 @@ with tab5:
     
     if files_adyen and adyen_selected:
         if st.button("Generate 'Adyen' Kit", key="btn_adyen"):
-            zip_data = process_images(files_adyen, adyen_selected, adyen_format, crop_method, compression_level)
+            zip_data = process_images(files_adyen, adyen_selected, adyen_format, adyen_crop, adyen_comp)
             st.download_button(f"📥 Download {adyen_format} Kit", data=zip_data, file_name="Adyen_Kit.zip", mime="application/zip")
 
 # ==========================================
@@ -226,7 +245,15 @@ with tab5:
 # ==========================================
 with tab6:
     st.subheader("Internal: Online Digital Banners")
-    ban_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=0, horizontal=True, key="fmt_ban")
+    
+    col_set1, col_set2, col_set3 = st.columns(3)
+    with col_set1:
+        ban_format = st.radio("Output Format:", ["PNG", "JPG", "GIF"], index=0, horizontal=True, key="fmt_ban")
+    with col_set2:
+        ban_crop = st.radio("Crop Style:", ["Crop from Center", "Crop from Top", "Fit (No Crop, Add Padding)"], horizontal=True, key="crop_ban")
+    with col_set3:
+        ban_comp = st.select_slider("Web Compression:", options=["Low", "Medium", "High"], value="High", key="comp_ban")
+    
     st.divider()
 
     banner_sizes = {
@@ -244,5 +271,5 @@ with tab6:
     
     if files_banner and banner_selected:
         if st.button("Generate Banner Kit", key="btn_banner"):
-            zip_data = process_images(files_banner, banner_selected, ban_format, crop_method, compression_level)
+            zip_data = process_images(files_banner, banner_selected, ban_format, ban_crop, ban_comp)
             st.download_button(f"📥 Download {ban_format} Kit", data=zip_data, file_name="Digital_Banners_Kit.zip", mime="application/zip")
